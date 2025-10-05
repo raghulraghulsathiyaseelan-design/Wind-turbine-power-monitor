@@ -1,0 +1,50 @@
+#include <LiquidCrystal.h>
+
+// LCD pins: RS, EN, D4, D5, D6, D7
+LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
+
+// Sensor pins
+const int voltagePin = A0;   // Voltage sensor connected to A0
+const int currentPin = A1;   // ACS712 current sensor connected to A1
+
+float Vref = 5.0;            // Arduino reference voltage
+float sensitivity = 0.185;   // ACS712 5A = 185 mV per Amp
+
+void setup() {
+  lcd.begin(16, 2);
+  Serial.begin(9600);
+  lcd.print("Wind Monitor");
+  delay(2000);
+  lcd.clear();
+}
+
+void loop() {
+  // Voltage measurement
+  int adcValue = analogRead(voltagePin);
+  float voltage = (adcValue * Vref) / 1023.0; 
+  voltage = voltage * 11;  // Adjust according to voltage divider ratio
+
+  // Current measurement
+  int adcValueI = analogRead(currentPin);
+  float Vout = (adcValueI * Vref) / 1023.0; 
+  float current = (Vout - (Vref / 2)) / sensitivity;
+
+  // Power calculation
+  float power = voltage * current;
+
+  // Display on LCD
+  lcd.setCursor(0, 0);
+  lcd.print("V:"); lcd.print(voltage, 1);
+  lcd.print(" I:"); lcd.print(current, 1);
+
+  lcd.setCursor(0, 1);
+  lcd.print("P:"); lcd.print(power, 1);
+  lcd.print(" W");
+
+  // Print on Serial Monitor
+  Serial.print("Voltage: "); Serial.print(voltage, 2); Serial.print(" V  ");
+  Serial.print("Current: "); Serial.print(current, 2); Serial.print(" A  ");
+  Serial.print("Power: "); Serial.print(power, 2); Serial.println(" W");
+
+  delay(1000);
+}
